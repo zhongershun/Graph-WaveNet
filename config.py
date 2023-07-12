@@ -8,5 +8,13 @@ class config:
 
     mode = 'train'
     BATCH_SIZE = 10
-    TRAIN_NUM = 1000
-    VALID_NUM = 190
+    TRAIN_NUM = 6000
+    VALID_NUM = 1130
+
+    #划分训练集相关
+    per_step = 2
+
+
+    residual_channels = 32
+    #TCN相关
+    tcn_in_dim = 1
