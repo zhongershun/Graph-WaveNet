@@ -28,6 +28,9 @@ class Mymodel(nn.Module):
                                     out_channels=config.out_dim,
                                     kernel_size=(1,1),
                                     bias=True)
+        self.out_conv = nn.Conv2d(in_channels=config.out_dim,
+                                  out_channels=1,
+                                  kernel_size=(1,1),bias=False)
         
         self.nodevec1 = nn.Parameter(torch.randn(config.num_sensor, 10).to(config.device), requires_grad=True).to(config.device)
         self.nodevec2 = nn.Parameter(torch.randn(10, config.num_sensor).to(config.device), requires_grad=True).to(config.device)
@@ -64,4 +67,5 @@ class Mymodel(nn.Module):
         out = F.relu(out)
 
         out=self.end_conv_2(out)
+        out = self.out_conv(out)
         return out     

@@ -38,3 +38,6 @@ class MyDataset(Dataset):
         
     def __len__(self):
         return len(self.data_x)
+    
+    def getx_data(self):
+        return self.data_x

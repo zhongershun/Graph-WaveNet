@@ -42,7 +42,8 @@ class ResidualLayer(nn.Module):
                                          kernel_size=2, dilation=dilation)  
         self.skipconv = nn.Conv2d(config.residual_channels, config.skip_channels,
                                          kernel_size=(1,1))
-        self.gconv = gcn(config=config)      
+        self.gconv = gcn(config=config)   
+        self.bn = nn.BatchNorm2d(config.residual_channels)   
         
    
     def forward(self, x, adjs):
@@ -56,6 +57,7 @@ class ResidualLayer(nn.Module):
         x = self.gconv(x,adjs)
         
         x = x + residual
+        x = self.bn(x)
         #skip=[batch,skip_channel,num_sensor,seq_len(12)]  x=[batch,residual_channel,num_sensor,seq_len]
         return x, skip
     
