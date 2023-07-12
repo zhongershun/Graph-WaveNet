@@ -13,8 +13,16 @@ class config:
 
     #划分训练集相关
     per_step = 2
+    adj_lens = 1
 
 
     residual_channels = 32
+    skip_channels=256
+    num_sensor=170
+    dilation = [1,2,4,8]
+
     #TCN相关
     tcn_in_dim = 1
+
+    #GCN相关
+    gcn_dropout = 0.3
