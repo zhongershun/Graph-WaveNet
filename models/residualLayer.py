@@ -40,8 +40,8 @@ class ResidualLayer(nn.Module):
                                          kernel_size=2, dilation=dilation)
         self.conv_gate = CausalConv2d(config.residual_channels, config.residual_channels,
                                          kernel_size=2, dilation=dilation)  
-        self.skipconv = CausalConv2d(config.residual_channels, config.skip_channels,
-                                         kernel_size=1)
+        self.skipconv = nn.Conv2d(config.residual_channels, config.skip_channels,
+                                         kernel_size=(1,1))
         self.gconv = gcn(config=config)      
         
    
@@ -50,7 +50,9 @@ class ResidualLayer(nn.Module):
         conv_filter = self.conv_filter(residual)
         conv_gate = self.conv_gate(residual)  
         x = torch.tanh(conv_filter) * torch.sigmoid(conv_gate) 
+        # print("x",x.shape)
         skip = self.skipconv(x)
+        # print(skip.shape)
         x = self.gconv(x,adjs)
         
         x = x + residual
