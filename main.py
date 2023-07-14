@@ -27,6 +27,7 @@ def parse_args():
     parser.add_argument('--lr',type=float,default=0.001,help='learning rate')
     parser.add_argument('--wd',type=float,default=0.0001,help='weight decay rate')
     parser.add_argument('--save',type=str,default='./save_model',help='save path')
+    parser.add_argument('--trained_model',type=str,default='./save_model/epoch_9.pth',help='trained model')
 
     args = parser.parse_args()
 
@@ -37,6 +38,7 @@ def parse_args():
     config.lr = args.lr
     config.wd = args.wd
     config.model_output = args.save
+    config.trained_model = args.trained_model
 
     config.device = torch.device(args.device)
     
@@ -162,9 +164,10 @@ def test(test_dataloader,scaler):
         # print(FROM[i])
         adj[FROM[i]][TO[i]] = cost[i]
     # print(adj)
+    adj = torch.Tensor(adj).to(config.device)
     model = Mymodel(adjs=[adj],config=config)
     model.to(config.device)
-    model.load_state_dict(torch.load(''))
+    model.load_state_dict(torch.load(config.trained_model))
     model.eval()
     mytrainer = trainer(model=model,config=config)
 
@@ -174,6 +177,11 @@ def test(test_dataloader,scaler):
         # testy = torch.Tensor(y).to(config.device)
         pred_y = mytrainer.predict(testx,scaler)
         pred_ys.append(pred_y)
+    pred_ys = torch.cat(pred_ys,dim=0)
+    pred_ys = pred_ys.permute(0,3,2,1)
+    print("output shape: ",pred_ys.shape)
+    arr = pred_ys.cpu().numpy()
+    np.save("./output/predict.npy", arr, allow_pickle=True, fix_imports=True)
 
 if __name__ == '__main__':
     parse_args()

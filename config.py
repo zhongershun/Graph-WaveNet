@@ -7,6 +7,7 @@ class config:
     train_adj_path = os.path.join(root_path, 'data/Data.csv')
 
     model_output = os.path.join(root_path, 'save_model')
+    trained_model = None
 
     device = None
     lr = 0.001

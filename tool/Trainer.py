@@ -87,21 +87,21 @@ class trainer:
     
     def valid(self, x, y, scaler):
         self.model.eval()
-        
-        pred_y = self.model(x)
-        pred_y = scaler.inverse_transform(pred_y)
+        with torch.no_grad():
+            pred_y = self.model(x)
+            pred_y = scaler.inverse_transform(pred_y)
         # (batch,1,num_sensor,12)
         # real = torch.unsqueeze(y,dim=1)
-        loss = self.loss(pred_y, y, 0.0)
-        mape = masked_mape(pred_y,y,0.0).item()
-        rmse = masked_rmse(pred_y,y,0.0).item()
+            loss = self.loss(pred_y, y, 0.0)
+            mape = masked_mape(pred_y,y,0.0).item()
+            rmse = masked_rmse(pred_y,y,0.0).item()
         return loss.item(),mape,rmse
     
     def predict(self, x,scaler):
         self.model.eval()
-        
-        pred_y = self.model(x)
-        pred_y = scaler.inverse_transform(pred_y)
+        with torch.no_grad():
+            pred_y = self.model(x)
+            pred_y = scaler.inverse_transform(pred_y)
         return pred_y
         # (batch,1,num_sensor,12)
         # real = torch.unsqueeze(y,dim=1)

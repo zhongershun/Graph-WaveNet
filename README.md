@@ -64,17 +64,18 @@ pip install -r requirements.txt
 --wd          # weight decay
 
 --save        # 训练模型保存路径
+--trained_mode # 已有已经训练好的模型 
 ```
 
 #### 训练模型
 
 ```shell
-python main.py --mode train --epoch 20 --lr 0.0001
+python main.py --mode train --epoch 20 --lr 0.0001 --save ./save_model
 ```
 
 #### 预测结果（结果会保存到output文件夹）
 ```shell
-python main.py --mode test
+python main.py --mode test --trained_model ./save_model/epoch_19.pth
 ```
 
 ### 项目介绍
