@@ -47,16 +47,16 @@ def parse_args():
 
 def prework():
     if config.mode=='train':
-        train_dataloader, valid_dataloader = Mydataloader(config=config)
-        return train_dataloader, valid_dataloader
+        train_dataloader, valid_dataloader, scaler = Mydataloader(config=config)
+        return train_dataloader, valid_dataloader, scaler
     elif config.mode=='test':
-        test_dataloader = Mydataloader(config=config)
-        return test_dataloader
+        test_dataloader, scaler = Mydataloader(config=config)
+        return test_dataloader, scaler
     
 
-def train(train_dataloader, valid_dataloader):
+def train(train_dataloader, valid_dataloader, scaler):
     edge = pd.read_csv(config.train_adj_path)
-    adj = np.ones((config.num_sensor,config.num_sensor))*10000
+    adj = np.zeros((config.num_sensor,config.num_sensor))*10000
     FROM = edge['from']
     TO = edge['to']
     cost = edge['cost']
@@ -73,7 +73,10 @@ def train(train_dataloader, valid_dataloader):
     # 画图用
     all_train_loss = []
     his_val_loss =[]
-    his_val_acc =[]
+    all_train_mape = []
+    all_train_rmse = []
+    all_val_mape = []
+    all_val_rmse = []
     
     
     val_time = []
@@ -89,12 +92,12 @@ def train(train_dataloader, valid_dataloader):
             i = i+1
             x = torch.Tensor(x).to(config.device)
             y = torch.Tensor(y).to(config.device)
-            metrics = mytrainer.train(x,y)
+            metrics = mytrainer.train(x,y,scaler)
 
             train_loss.append(metrics[0])
             train_mape.append(metrics[1])
             train_rmse.append(metrics[2])
-            if i % 10 == 0 :
+            if i % 30 == 0 :
                 log = 'Iter: {:03d}, Train Loss: {:.4f}, Train MAPE: {:.4f}, Train RMSE: {:.4f}'
                 print(log.format(i, train_loss[-1], train_mape[-1], train_rmse[-1]),flush=True)
         t2 = time.time()
@@ -104,19 +107,23 @@ def train(train_dataloader, valid_dataloader):
         valid_mape = []
         valid_rmse = []
         all_train_loss.extend(train_loss)
+        all_train_mape.extend(train_mape)
+        all_train_rmse.extend(train_rmse)
 
 
         s1 = time.time()
         for x, y in tqdm(valid_dataloader):
             testx = torch.Tensor(x).to(config.device)
             testy = torch.Tensor(y).to(config.device)
-            metrics = mytrainer.valid(testx, testy)
+            metrics = mytrainer.valid(testx, testy, scaler)
 
             valid_loss.append(metrics[0])
             valid_mape.append(metrics[1])
             valid_rmse.append(metrics[2])
         s2 = time.time()
         log = 'Epoch: {:03d}, Inference Time: {:.4f} secs'
+        all_val_mape.extend(valid_mape)
+        all_val_rmse.extend(valid_rmse)
         print(log.format(e,(s2-s1)))
         val_time.append(s2-s1)
         mtrain_loss = np.mean(train_loss)
@@ -140,10 +147,14 @@ def train(train_dataloader, valid_dataloader):
     his_val_loss = np.array(his_val_loss)
     np.savetxt('./DataLog/alllosses.csv', all_train_loss, delimiter=',', fmt='%.3f')
     np.savetxt('./DataLog/vallosses.csv', his_val_loss, delimiter=',', fmt='%.3f')
+    np.savetxt('./DataLog/all_train_mape.csv', all_train_mape, delimiter=',', fmt='%.3f')
+    np.savetxt('./DataLog/all_train_rmse.csv', all_train_rmse, delimiter=',', fmt='%.3f')
+    np.savetxt('./DataLog/all_val_mape.csv', all_val_mape, delimiter=',', fmt='%.3f')
+    np.savetxt('./DataLog/all_val_rmse.csv', all_val_rmse, delimiter=',', fmt='%.3f')
 
-def test(test_dataloader):
+def test(test_dataloader,scaler):
     edge = pd.read_csv(config.train_adj_path)
-    adj = np.ones((config.num_sensor,config.num_sensor))*10000
+    adj = np.zeros((config.num_sensor,config.num_sensor))*10000
     FROM = edge['from']
     TO = edge['to']
     cost = edge['cost']
@@ -161,14 +172,14 @@ def test(test_dataloader):
     for x in tqdm(test_dataloader):
         testx = torch.Tensor(x).to(config.device)
         # testy = torch.Tensor(y).to(config.device)
-        pred_y = mytrainer.predict(testx)
+        pred_y = mytrainer.predict(testx,scaler)
         pred_ys.append(pred_y)
 
 if __name__ == '__main__':
     parse_args()
     if config.mode == 'train':
-        train_dataloader,valid_dataloader = prework()
-        train(train_dataloader,valid_dataloader)
+        train_dataloader,valid_dataloader,scaler = prework()
+        train(train_dataloader,valid_dataloader,scaler)
     elif config.mode == 'test':
-        test_dataloader = prework()
-        test()
+        test_dataloader,scaler = prework()
+        test(test_dataloader, scaler)

@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from torch.utils.data import Dataset
+from tool.standscaler import StandardScaler
 
 class MyDataset(Dataset):
     def __init__(self,config):
@@ -9,6 +10,9 @@ class MyDataset(Dataset):
             # print('touch')
             train_data = np.load(config.train_data_path)
             # train_data = train_data[:-4]
+            scaler = StandardScaler(mean=train_data[...,0].mean(),std=train_data[...,0].std())
+            self.scaler = scaler
+            train_data = scaler.transform(train_data)
             self.data = train_data
             # print(self.data.shape)
             # print(int((self.data.shape[0]-12-12)/self.config.per_step)+1)
@@ -23,6 +27,9 @@ class MyDataset(Dataset):
             self.data_y = train_data_clip_y
         elif config.mode == 'test':
             test_data = np.load(config.test_data_path)
+            scaler = StandardScaler(mean=test_data[...,0].mean(),std=test_data[...,0].std())
+            self.scaler = scaler
+            test_data = scaler.transform(test_data)
             self.data = test_data
             self.data_x = test_data
             self.data_y = None
@@ -39,5 +46,5 @@ class MyDataset(Dataset):
     def __len__(self):
         return len(self.data_x)
     
-    def getx_data(self):
-        return self.data_x
+    def getx_scaler(self):
+        return self.scaler

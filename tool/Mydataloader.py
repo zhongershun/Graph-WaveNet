@@ -5,7 +5,7 @@ from torch.utils.data import sampler
 import torch
 
 def collate_fn(batch):
-    print(len(batch[0]))
+    # print(len(batch[0]))
     is_train = True if len(batch[0])==2 else False
     if is_train:
         # print('touch')
@@ -31,12 +31,12 @@ def Mydataloader(config):
             collate_fn=collate_fn,
             sampler=sampler.RandomSampler(range(config.TRAIN_NUM,config.TRAIN_NUM+config.VALID_NUM))
         )
-        return train_dataloader, valid_dataloader
+        return train_dataloader, valid_dataloader, dataset.getx_scaler()
     elif config.mode == 'test':
         test_dataloader = DataLoader(
             dataset=dataset,
             # collate_fn=collate_fn,
             batch_size=config.BATCH_SIZE
         )
-        return test_dataloader
+        return test_dataloader, dataset.getx_scaler()
     

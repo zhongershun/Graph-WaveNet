@@ -64,7 +64,7 @@ class trainer:
         self.clip = 5
     
 
-    def train(self,x,y):
+    def train(self,x,y,scaler):
         self.model.train()
         self.optimizer.zero_grad()
         
@@ -72,6 +72,7 @@ class trainer:
         # print(y.shape)
         # exit(0)
         pred_y = self.model(x)
+        pred_y = scaler.inverse_transform(pred_y)
         # (batch,1,num_sensor,12)
         # real = torch.unsqueeze(y,dim=1)
         loss = self.loss(pred_y, y, 0.0)
@@ -84,10 +85,11 @@ class trainer:
         rmse = masked_rmse(pred_y,y,0.0).item()
         return loss.item(),mape,rmse
     
-    def valid(self, x, y):
+    def valid(self, x, y, scaler):
         self.model.eval()
         
         pred_y = self.model(x)
+        pred_y = scaler.inverse_transform(pred_y)
         # (batch,1,num_sensor,12)
         # real = torch.unsqueeze(y,dim=1)
         loss = self.loss(pred_y, y, 0.0)
@@ -95,10 +97,11 @@ class trainer:
         rmse = masked_rmse(pred_y,y,0.0).item()
         return loss.item(),mape,rmse
     
-    def predict(self, x):
+    def predict(self, x,scaler):
         self.model.eval()
         
         pred_y = self.model(x)
+        pred_y = scaler.inverse_transform(pred_y)
         return pred_y
         # (batch,1,num_sensor,12)
         # real = torch.unsqueeze(y,dim=1)
